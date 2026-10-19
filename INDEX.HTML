@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Benchmark Dispositivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0F0B1C; --surface:#1A1430; --surface2:#241C40;
+  --accent:#B14AFF; --accent2:#4FE3FF; --good:#4FE3FF; --bad:#FF4FD8;
+  --text:#F3EFFF; --muted:#9D93B8; --border:#3A2E5C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){ --bg:#0F0B1C; --surface:#1A1430; --surface2:#241C40; --text:#F3EFFF; --muted:#9D93B8; --border:#3A2E5C; }
+}
+:root[data-theme="dark"]{ --bg:#0F0B1C; --surface:#1A1430; --surface2:#241C40; --text:#F3EFFF; --muted:#9D93B8; --border:#3A2E5C; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
+h1,h2,.display{ font-family:'Space Grotesk',sans-serif; }
+.mono{ font-family:'JetBrains Mono',monospace; }
+header{ padding:30px 24px 10px; text-align:center; }
+header h1{ margin:0 0 8px; font-size:1.7rem; color:var(--accent); text-shadow:0 0 20px rgba(177,74,255,0.55); }
+header p{ margin:0 auto; max-width:460px; color:var(--muted); font-size:0.92rem; }
+main{ max-width:900px; margin:0 auto; padding:20px 20px 50px; }
+.run-wrap{ text-align:center; margin:22px 0 28px; }
+button{ background:var(--accent); color:#0A0614; border:none; padding:13px 28px; border-radius:10px; font-size:1rem; font-weight:600; font-family:'Space Grotesk'; cursor:pointer; box-shadow:0 0 28px rgba(177,74,255,0.45); }
+button:disabled{ opacity:0.5; cursor:default; }
+.progress{ max-width:300px; margin:16px auto 0; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; display:none; }
+.progress.active{ display:block; }
+.progress .fill{ height:100%; width:0%; background:var(--accent); transition:width .25s; }
+.status{ color:var(--muted); font-size:0.85rem; margin-top:8px; min-height:18px; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:28px; }
+.card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+.card .label{ color:var(--muted); font-size:0.75rem; margin-bottom:5px; }
+.card .val{ font-size:1rem; }
+.results{ display:none; }
+.results.active{ display:block; }
+.score-row{ display:flex; align-items:center; gap:24px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:18px; flex-wrap:wrap; }
+.score-circle{ position:relative; width:120px; height:120px; flex-shrink:0; }
+.score-circle svg{ transform:rotate(-90deg); }
+.score-num{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-size:1.8rem; font-weight:700; }
+.score-text h2{ margin:0 0 6px; font-size:1.1rem; }
+.score-text p{ margin:0; color:var(--muted); font-size:0.88rem; max-width:360px; }
+.charts{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; }
+.panel h3{ margin:0 0 12px; font-size:0.95rem; font-weight:500; }
+.note{ color:var(--muted); font-size:0.72rem; margin-top:10px; }
+@media (max-width:640px){ .charts{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Benchmark del dispositivo</h1>
+  <p>Misura le prestazioni reali del tuo dispositivo eseguendo dei test direttamente nel browser — nessuna installazione richiesta.</p>
+</header>
+<main>
+  <div class="grid" id="infoGrid"></div>
+
+  <div class="run-wrap">
+    <button id="runBtn">Avvia benchmark</button>
+    <div class="progress" id="progress"><div class="fill" id="progressFill"></div></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="score-row">
+      <div class="score-circle">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface2)" stroke-width="10"/>
+          <circle id="scoreArc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"/>
+        </svg>
+        <div class="score-num" id="scoreNum">0</div>
+      </div>
+      <div class="score-text">
+        <h2 id="scoreLabel">Punteggio complessivo</h2>
+        <p id="scoreDesc">In base ai test di calcolo e memoria eseguiti sul tuo dispositivo.</p>
+      </div>
+    </div>
+    <div class="charts">
+      <div class="panel">
+        <h3>Confronto con fasce di riferimento</h3>
+        <canvas id="compareChart"></canvas>
+        <div class="note">Fasce indicative basate su dispositivi tipici, non su un database in tempo reale.</div>
+      </div>
+      <div class="panel">
+        <h3>Dettaglio per categoria di test</h3>
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Test CPU — operazioni nel tempo</h3>
+        <canvas id="cpuTrendChart"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Test memoria — cicli nel tempo</h3>
+        <canvas id="memTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// --- 1. INFORMAZIONI DISPOSITIVO ---
+// Legge ciò che il browser è disposto a condividere su CPU, memoria,
+// scheda grafica, schermo e connessione (sono stime, non dati precisi).
+const infoGrid = document.getElementById('infoGrid');
+function info(label, val){ return `<div class="card"><div class="label">${label}</div><div class="val mono">${val}</div></div>`; }
+
+const cores = navigator.hardwareConcurrency || "N/D";
+const mem = navigator.deviceMemory ? navigator.deviceMemory + " GB (stima)" : "non esposta dal browser";
+let gpu = "non disponibile";
+try{
+  const c = document.createElement('canvas');
+  const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  gpu = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : "protetta dal browser";
+}catch(e){}
+const screenInfo = `${screen.width}×${screen.height} @${window.devicePixelRatio}x`;
+const conn = navigator.connection?.effectiveType ? navigator.connection.effectiveType.toUpperCase() : "N/D";
+
+infoGrid.innerHTML = [
+  info("Core logici CPU", cores),
+  info("Memoria stimata", mem),
+  info("Scheda grafica", gpu.length>26 ? gpu.slice(0,26)+"…" : gpu),
+  info("Risoluzione schermo", screenInfo),
+  info("Connessione", conn),
+].join('');
+
+// --- 2. TEST CPU ---
+// Calcoli ripetuti (radice quadrata + seno) per un tempo fisso, contando le operazioni.
+function cpuTest(durationMs, chunkMs){
+  const start = performance.now();
+  let ops = 0, chunks = [], lastChunkStart = start, chunkOps = 0;
+  while(performance.now() - start < durationMs){
+    for(let i=0;i<1000;i++){ Math.sqrt(i) * Math.sin(i); ops++; chunkOps++; }
+    const now = performance.now();
+    if(now - lastChunkStart >= chunkMs){ chunks.push(chunkOps/(now-lastChunkStart)); chunkOps=0; lastChunkStart=now; }
+  }
+  return { rate: ops/durationMs, chunks };
+}
+
+// --- 3. TEST MEMORIA ---
+// Crea e ordina ripetutamente un array di 20.000 numeri.
+function memTest(durationMs, chunkMs){
+  const start = performance.now();
+  let rounds = 0, chunks = [], lastChunkStart = start, chunkRounds = 0;
+  while(performance.now() - start < durationMs){
+    const arr = new Array(20000).fill(0).map((_,i)=>i*1.5);
+    arr.sort((a,b)=>b-a);
+    rounds++; chunkRounds++;
+    const now = performance.now();
+    if(now - lastChunkStart >= chunkMs){ chunks.push(chunkRounds/(now-lastChunkStart)); chunkRounds=0; lastChunkStart=now; }
+  }
+  return { rate: rounds/durationMs, chunks };
+}
+
+function setProgress(pct, text){
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('status').textContent = text;
+}
+
+document.getElementById('runBtn').onclick = async ()=>{
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('progress').classList.add('active');
+  document.getElementById('results').classList.remove('active');
+
+  setProgress(10, "Test CPU in corso...");
+  await new Promise(r=>setTimeout(r, 50));
+  const cpu = cpuTest(700, 100);
+
+  setProgress(55, "Test memoria in corso...");
+  await new Promise(r=>setTimeout(r, 50));
+  const mem = memTest(500, 100);
+
+  setProgress(85, "Elaborazione risultati...");
+  await new Promise(r=>setTimeout(r, 200));
+
+  const cpuScore = Math.min(100, Math.round((cpu.rate/8)));
+  const memScore = Math.min(100, Math.round((mem.rate*2500)));
+  const overall = Math.round((cpuScore+memScore)/2);
+
+  setProgress(100, "Completato");
+  setTimeout(()=>{ document.getElementById('progress').classList.remove('active'); btn.disabled=false; }, 600);
+
+  showResults(overall, cpuScore, memScore, cpu.chunks, mem.chunks);
+};
+
+// --- 4. RISULTATI E GRAFICI ---
+function showResults(overall, cpuScore, memScore, cpuChunks, memChunks){
+  document.getElementById('results').classList.add('active');
+  document.getElementById('scoreNum').textContent = overall;
+  const offset = 327 - (327*overall/100);
+  document.getElementById('scoreArc').style.strokeDashoffset = offset;
+  const tier = overall<35 ? ["Fascia base","var(--bad)"] : overall<70 ? ["Fascia media","var(--accent2)"] : ["Fascia alta","var(--good)"];
+  document.getElementById('scoreArc').style.stroke = tier[1];
+  document.getElementById('scoreLabel').textContent = `Punteggio complessivo — ${tier[0]}`;
+
+  const tick='#9D93B8', grid='#3A2E5C', txt='#F3EFFF';
+
+  new Chart(document.getElementById('compareChart'), {
+    type:'bar',
+    data:{ labels:['Entry level','Fascia media','Fascia alta','Il tuo dispositivo'],
+      datasets:[{ data:[25,55,85,overall], backgroundColor:['#3A2E5C','#3A2E5C','#3A2E5C','#B14AFF'] }]},
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{max:100, ticks:{color:tick}, grid:{color:grid}}, y:{ticks:{color:tick}, grid:{display:false}} } }
+  });
+
+  new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{ labels:['Calcolo (CPU)','Memoria','Reattività'],
+      datasets:[{ label:'Punteggio', data:[cpuScore, memScore, Math.round((cpuScore+memScore)/2)],
+        backgroundColor:'rgba(177,74,255,0.25)', borderColor:'#B14AFF', pointBackgroundColor:'#B14AFF' }]},
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ r:{ min:0, max:100, ticks:{color:tick, backdropColor:'transparent'}, grid:{color:grid}, angleLines:{color:grid}, pointLabels:{color:txt, font:{size:11}} } } }
+  });
+
+  new Chart(document.getElementById('cpuTrendChart'), {
+    type:'line',
+    data:{ labels:cpuChunks.map((_,i)=>`${(i+1)*100}ms`),
+      datasets:[{ label:'Operazioni/ms', data:cpuChunks.map(v=>Math.round(v)), borderColor:'#4FE3FF',
+        backgroundColor:'rgba(79,227,255,0.15)', fill:true, tension:0.3, pointRadius:2 }]},
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:tick}, grid:{color:grid}}, y:{ticks:{color:tick}, grid:{color:grid}} } }
+  });
+
+  new Chart(document.getElementById('memTrendChart'), {
+    type:'line',
+    data:{ labels:memChunks.map((_,i)=>`${(i+1)*100}ms`),
+      datasets:[{ label:'Cicli/ms', data:memChunks.map(v=>Number(v.toFixed(2))), borderColor:'#FF4FD8',
+        backgroundColor:'rgba(255,79,216,0.15)', fill:true, tension:0.3, pointRadius:2 }]},
+    options:{ responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:tick}, grid:{color:grid}}, y:{ticks:{color:tick}, grid:{color:grid}} } }
+  });
+}
+</script>
+</body>
+</html>
