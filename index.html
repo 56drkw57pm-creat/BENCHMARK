@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>window.Chart||document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"><\/script>')</script>
 <style>
 :root{
   --bg:#0F0B1C; --surface:#1A1430; --surface2:#241C40;
@@ -52,6 +53,41 @@ button:disabled{ opacity:0.5; cursor:default; }
 .panel h3{ margin:0 0 12px; font-size:0.95rem; font-weight:500; }
 .note{ color:var(--muted); font-size:0.72rem; margin-top:10px; }
 @media (max-width:640px){ .charts{ grid-template-columns:1fr; } }
+
+/* ===== Report completo e consigli di upgrade (aggiunta) ===== */
+#report{display:none;margin-top:34px}
+.rp-h{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;margin:0 0 6px;color:var(--accent);text-shadow:0 0 18px rgba(177,74,255,0.45)}
+.rp-sec{font-family:'Space Grotesk',sans-serif;font-size:0.8rem;color:var(--muted);font-weight:500;margin:22px 0 10px;letter-spacing:0.02em}
+.rp-note{color:var(--muted);font-size:0.82rem;margin:0 0 14px}
+.rp-wide{grid-column:span 2}
+.rp-sub{color:var(--muted);font-size:0.72rem;margin-top:6px}
+.rp-sub.warn{color:#FFB454}
+#repForm{margin-bottom:6px}
+#repForm h3{margin:0 0 6px;font-size:0.95rem;font-weight:500}
+.rp-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.rp-form label{display:flex;flex-direction:column;gap:6px;font-size:0.78rem;color:var(--muted)}
+.rp-form select,.rp-form input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem}
+.rp-adv{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
+.rp-adv h3{margin:8px 0 6px;font-size:1.02rem;font-family:'Space Grotesk',sans-serif}
+.rp-adv>p{margin:0 0 6px;color:var(--muted);font-size:0.88rem}
+.rp-badge{display:inline-block;font-size:0.7rem;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid var(--border)}
+.rp-badge.free{color:#4FE3FF;border-color:#4FE3FF}
+.rp-badge.p1{color:#FF4FD8;border-color:#FF4FD8}
+.rp-badge.p2{color:#B14AFF;border-color:#B14AFF}
+.rp-badge.p3{color:#FFB454;border-color:#FFB454}
+.rp-prod{display:flex;gap:16px;align-items:center;background:var(--surface2);border-radius:12px;padding:12px;margin-top:10px}
+.rp-img{width:130px;flex-shrink:0}
+.rp-img svg{width:100%;height:auto;display:block}
+.rp-pi b{font-size:0.95rem}
+.rp-sub2{color:var(--muted);font-size:0.78rem;margin:2px 0 6px}
+.rp-price{font-family:'Space Grotesk',sans-serif;color:var(--accent2);font-size:1.05rem}
+.rp-price span{font-family:'Inter',sans-serif;color:var(--muted);font-size:0.7rem;font-weight:400}
+.rp-req{color:var(--muted);font-size:0.74rem;margin:4px 0 8px}
+.rp-links a{display:inline-block;margin:0 8px 6px 0;font-size:0.8rem;color:var(--accent2);border:1px solid var(--border);padding:6px 12px;border-radius:8px;text-decoration:none}
+.rp-links a:hover{border-color:var(--accent2)}
+.rp-foot{color:var(--muted);font-size:0.72rem;margin-top:6px}
+#repStatus canvas{display:block;margin:12px auto 0;border-radius:10px;border:1px solid var(--border);background:var(--surface);max-width:100%}
+@media (max-width:640px){.rp-wide{grid-column:span 1}.rp-prod{flex-direction:column;align-items:stretch}.rp-img{width:100%;max-width:200px}}
 </style>
 </head>
 <body>
@@ -102,6 +138,18 @@ button:disabled{ opacity:0.5; cursor:default; }
       </div>
     </div>
   </div>
+  <section id="report">
+    <h2 class="rp-h">Report completo e consigli di upgrade</h2>
+    <p class="rp-note">Analisi dei componenti del computer che ha eseguito il test, con consigli di aggiornamento e prezzi indicativi.</p>
+    <h2 class="rp-sec">SCHEDA TECNICA RILEVATA</h2>
+    <div class="grid" id="repInfo" style="margin-bottom:14px"></div>
+    <div class="panel" id="repForm"></div>
+    <div class="status" id="repStatus"></div>
+    <h2 class="rp-sec">PRESTAZIONI MISURATE</h2>
+    <div class="grid" id="repMeasured" style="margin-bottom:8px"></div>
+    <h2 class="rp-sec">CONSIGLI DI UPGRADE</h2>
+    <div id="repAdvice"></div>
+  </section>
 </main>
 
 <script>
@@ -238,6 +286,236 @@ function showResults(overall, cpuScore, memScore, cpuChunks, memChunks){
       scales:{ x:{ticks:{color:tick}, grid:{color:grid}}, y:{ticks:{color:tick}, grid:{color:grid}} } }
   });
 }
+</script>
+<script>
+// ===== REPORT COMPLETO E CONSIGLI DI UPGRADE (aggiunta: il codice sopra resta invariato) =====
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const lg = (x, lo, hi) => Math.round(100 * clamp((Math.log(x) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)), 0, 1));
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const vd = s => s < 35 ? "debole" : s < 65 ? "nella media" : "buono";
+const S = { cpu: null, mem: null, stab: 100, gfx: null, net: null, he: {} };
+const G = (typeof gpu === 'string') ? gpu : 'N/D';
+const CHART_URL = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js";
+
+// Intercetta i test esistenti per leggere i valori reali (senza modificarli)
+const _cpu = window.cpuTest, _mem = window.memTest, _show = window.showResults;
+window.cpuTest = function(){
+  const r = _cpu.apply(this, arguments);
+  S.cpu = r.rate / 1000; // milioni di operazioni al secondo
+  const t = Math.max(1, Math.floor(r.chunks.length / 3));
+  S.stab = Math.round(clamp(avg(r.chunks.slice(-t)) / avg(r.chunks.slice(0, t)), 0, 1) * 100) || 100;
+  return r;
+};
+window.memTest = function(){ const r = _mem.apply(this, arguments); S.mem = r.rate * 1000; return r; };
+window.showResults = function(){
+  try { _show.apply(this, arguments); } catch (e) { console.warn("Grafici non disponibili:", e); }
+  onDone();
+};
+
+if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+  navigator.userAgentData.getHighEntropyValues(['architecture', 'bitness', 'platformVersion'])
+    .then(v => { S.he = v || {}; }).catch(() => {});
+}
+
+/* ---- Rilevamento ---- */
+function browserName(){
+  const u = navigator.userAgent, m = re => (u.match(re) || [, ''])[1];
+  if (/Edg\//.test(u)) return "Edge " + m(/Edg\/(\d+)/);
+  if (/OPR\//.test(u)) return "Opera " + m(/OPR\/(\d+)/);
+  if (/Firefox\//.test(u)) return "Firefox " + m(/Firefox\/(\d+)/);
+  if (/Chrome\//.test(u)) return "Chrome " + m(/Chrome\/(\d+)/);
+  if (/Safari\//.test(u)) return "Safari " + m(/Version\/(\d+)/);
+  return "Sconosciuto";
+}
+function osName(){
+  const u = navigator.userAgent, pv = S.he.platformVersion;
+  if (/Windows/.test(u)) return pv ? (parseInt(pv, 10) >= 13 ? "Windows 11" : "Windows 10") : "Windows 10/11";
+  if (/Android/.test(u)) return "Android";
+  if (/iPhone|iPad/.test(u)) return "iOS";
+  if (/Mac OS X/.test(u)) return "macOS";
+  if (/Linux/.test(u)) return "Linux";
+  return "N/D";
+}
+function gpuInfo(g){
+  const sw = /basic render|swiftshader|llvmpipe|software/i.test(g);
+  const ded = /nvidia|geforce|\brtx\b|\bgtx\b|radeon rx|radeon pro|arc\s?[ab]\d/i.test(g);
+  const igp = /intel|uhd|iris|hd graphics|radeon\(tm\)|radeon graphics|vega|apple/i.test(g);
+  const parts = g.replace(/^ANGLE \(/, '').replace(/\)$/, '').split(', ');
+  const name = (parts[1] || parts[0] || g).replace(/\s*(Direct3D|\(0x).*$/i, '').trim() || g;
+  return { k: sw ? 'sw' : ded ? 'ded' : igp ? 'int' : 'nd', name,
+    label: sw ? "Rendering software (nessuna accelerazione GPU)" : ded ? "Scheda video dedicata" : igp ? "Grafica integrata" : "Non classificabile" };
+}
+function rc(label, val, sub, cls){
+  return `<div class="card ${cls || ''}"><div class="label">${label}</div><div class="val mono">${esc(val)}</div>${sub ? `<div class="rp-sub ${/Attenzione/.test(sub) ? 'warn' : ''}">${sub}</div>` : ''}</div>`;
+}
+function renderDetected(){
+  const gi = gpuInfo(G), dm = navigator.deviceMemory, he = S.he;
+  const arch = he.architecture ? `${he.architecture}${he.bitness ? ' · ' + he.bitness + ' bit' : ''}` : "N/D";
+  $('repInfo').innerHTML = [
+    rc("Sistema operativo", osName()),
+    rc("Browser", browserName()),
+    rc("Architettura CPU", arch),
+    rc("Core logici CPU", navigator.hardwareConcurrency || "N/D"),
+    rc("RAM rilevata", dm ? (dm >= 8 ? "8 GB o più" : dm + " GB (stima)") : "non esposta", dm >= 8 ? "Il browser non indica valori superiori a 8 GB." : ""),
+    rc("Scheda grafica", gi.name, gi.label + (gi.k === 'sw' ? ". Attenzione: la GPU potrebbe non essere usata." : ""), "rp-wide"),
+    rc("Schermo", `${screen.width}×${screen.height} @${window.devicePixelRatio}x`),
+    rc("Connessione", navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType.toUpperCase() : "N/D"),
+  ].join('');
+}
+
+/* ---- Test aggiuntivi: grafica e rete ---- */
+function gfxTest(ms){
+  return new Promise(resolve => {
+    const cv = document.createElement('canvas'); cv.width = 320; cv.height = 140;
+    $('repStatus').appendChild(cv);
+    const ctx = cv.getContext('2d');
+    const P = Array.from({ length: 1500 }, () => ({ x: Math.random() * 320, y: Math.random() * 140, vx: Math.random() * 4 - 2, vy: Math.random() * 4 - 2, r: 2 + Math.random() * 4 }));
+    let frames = 0; const t0 = performance.now();
+    (function loop(){
+      ctx.clearRect(0, 0, 320, 140);
+      for (const p of P) {
+        p.x = (p.x + p.vx + 320) % 320; p.y = (p.y + p.vy + 140) % 140;
+        ctx.fillStyle = p.r > 4 ? '#B14AFF' : '#4FE3FF';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+      }
+      frames++;
+      const now = performance.now();
+      if (now - t0 < ms) requestAnimationFrame(loop);
+      else { cv.remove(); resolve(frames / ((now - t0) / 1000)); }
+    })();
+  });
+}
+async function netTest(){
+  try {
+    const t = performance.now();
+    const b = await (await fetch(CHART_URL, { cache: 'no-store' })).blob();
+    return b.size * 8 / 1e6 / ((performance.now() - t) / 1000);
+  } catch (e) { return null; }
+}
+
+/* ---- Immagini dei componenti (illustrazioni SVG) ---- */
+function ico(t){
+  const c1 = '#B14AFF', c2 = '#4FE3FF', g = '#FFB454';
+  const s = {
+    ram: `<rect x="6" y="14" width="108" height="32" rx="3" fill="#241C40" stroke="${c1}" stroke-width="2"/>${[0,1,2,3,4,5].map(i => `<rect x="${14 + i * 16}" y="20" width="11" height="15" rx="1.5" fill="${c2}" opacity=".85"/>`).join('')}${Array.from({length: 22}, (_, i) => `<rect x="${9 + i * 4.7}" y="46" width="2.6" height="8" fill="${g}"/>`).join('')}`,
+    nvme: `<rect x="6" y="22" width="108" height="26" rx="3" fill="#241C40" stroke="${c1}" stroke-width="2"/><rect x="12" y="27" width="22" height="16" rx="1.5" fill="${c2}"/><rect x="40" y="27" width="22" height="16" rx="1.5" fill="${c2}" opacity=".7"/><rect x="68" y="27" width="22" height="16" rx="1.5" fill="${c2}" opacity=".5"/><circle cx="105" cy="35" r="3" fill="#0F0B1C"/><rect x="0" y="27" width="6" height="16" fill="${g}"/>`,
+    sata: `<rect x="14" y="6" width="92" height="56" rx="5" fill="#241C40" stroke="${c1}" stroke-width="2"/><rect x="22" y="14" width="54" height="22" rx="2" fill="${c2}" opacity=".8"/><text x="24" y="52" font-size="9" fill="#F3EFFF" font-family="sans-serif">SSD 2,5 pollici</text><rect x="86" y="50" width="14" height="6" fill="${g}"/>`,
+    gpu: `<rect x="4" y="10" width="112" height="42" rx="5" fill="#241C40" stroke="${c1}" stroke-width="2"/><circle cx="38" cy="31" r="14" fill="none" stroke="${c2}" stroke-width="2"/><circle cx="38" cy="31" r="3" fill="${c2}"/><circle cx="80" cy="31" r="14" fill="none" stroke="${c2}" stroke-width="2"/><circle cx="80" cy="31" r="3" fill="${c2}"/><rect x="14" y="52" width="60" height="6" fill="${g}"/>`,
+    cpu: `<rect x="30" y="10" width="60" height="50" rx="4" fill="#241C40" stroke="${c1}" stroke-width="2"/><rect x="42" y="20" width="36" height="30" rx="2" fill="${c2}" opacity=".8"/>${[0,1,2,3,4].map(i => `<rect x="${36 + i * 11}" y="3" width="3" height="7" fill="${g}"/><rect x="${36 + i * 11}" y="60" width="3" height="7" fill="${g}"/>`).join('')}`
+  };
+  return `<svg viewBox="0 0 120 70" role="img" aria-label="Illustrazione del componente">${s[t] || ''}</svg>`;
+}
+
+/* ---- Catalogo prodotti (prezzi indicativi, Italia, rilevati il 21/10/2026) ---- */
+const NOTE = "Italia, 21/10/2026";
+const CAT = {
+  nvme: { ico: 'nvme', name: 'SSD NVMe M.2 da 1 TB (PCIe 4.0)', ex: 'Esempi: Crucial P310 1TB, Kingston NV3 1TB', price: '€140–185', q: 'SSD NVMe M.2 1TB', req: 'Serve uno slot M.2 libero o sostituibile: verificalo nel manuale del computer.' },
+  sata: { ico: 'sata', name: 'SSD SATA 2,5" da 500 GB–1 TB', ex: 'Esempi: Crucial BX500/MX500, Samsung 870 EVO', price: null, q: 'SSD SATA 2.5 1TB', req: 'Adatto a portatili e PC con baia da 2,5" (la stessa dell’HDD).' },
+  gpu: { ico: 'gpu', name: 'Scheda video dedicata di fascia entry/media', ex: 'Esempi: GeForce RTX 5060, Radeon RX 9060 XT', price: null, q: 'scheda video RTX 5060', req: 'Verifica alimentatore, spazio nel case e slot PCIe.' },
+  cpu: { ico: 'cpu', name: 'CPU compatibile con la tua scheda madre', ex: 'Il modello dipende dal socket (es. AM4, AM5, LGA1700)', price: null, q: 'processore CPU Ryzen Core', req: 'Controlla socket e BIOS della scheda madre prima di acquistare.' }
+};
+function ramProd(f){
+  const t = f.ramT === '?' ? 'DDR4' : f.ramT, nb = f.tipo === 'nb', pc = f.tipo === 'pc';
+  const form = nb ? 'SO-DIMM' : pc ? 'DIMM' : 'SO-DIMM (portatile) o DIMM (desktop)';
+  const hasPrice = nb && f.ramT === 'DDR4';
+  return { ico: 'ram', name: `RAM ${t} ${form} da 16 GB`,
+    ex: hasPrice ? 'Esempi: Crucial 16GB 3200, Corsair Vengeance SO-DIMM, kit 2×8 GB' : 'Scegli tipo e frequenza supportati dal tuo computer',
+    price: hasPrice ? '€70–125' : null, q: `RAM ${t} ${nb ? 'SODIMM' : pc ? 'DIMM' : ''} 16GB`,
+    req: (f.ramT === '?' ? 'Verifica prima il tipo: DDR3, DDR4 e DDR5 non sono compatibili tra loro. ' : '') + (nb ? 'Nei portatili controlla che ci sia uno slot libero: in alcuni modelli la RAM è saldata.' : 'Controlla gli slot liberi sulla scheda madre.') };
+}
+function prodCard(pr){
+  const q = encodeURIComponent(pr.q);
+  return `<div class="rp-prod"><div class="rp-img">${ico(pr.ico)}</div><div class="rp-pi"><b>${esc(pr.name)}</b><div class="rp-sub2">${esc(pr.ex)}</div>
+  <div class="rp-price">${pr.price ? `${pr.price} <span>prezzo indicativo · ${NOTE}</span>` : '<span>Prezzo: controlla le offerte aggiornate</span>'}</div>
+  <div class="rp-req">${esc(pr.req)}</div>
+  <div class="rp-links"><a href="https://www.amazon.it/s?k=${q}" target="_blank" rel="noopener">Vedi su Amazon.it</a><a href="https://www.google.com/search?tbm=shop&q=${q}" target="_blank" rel="noopener">Confronta i prezzi</a></div></div></div>`;
+}
+
+/* ---- Modulo dati e consigli ---- */
+let formBuilt = false;
+function buildForm(){
+  if (formBuilt) return; formBuilt = true;
+  const dm = navigator.deviceMemory, def = (dm && dm < 8) ? dm : 8;
+  $('repForm').innerHTML = `<h3>Completa i dati del tuo computer</h3>
+  <p class="rp-note">Il browser non può leggere il modello della CPU, il tipo di disco né la RAM oltre 8 GB. Indicali qui per avere consigli precisi (i dati restano sul tuo dispositivo).</p>
+  <div class="rp-form">
+  <label>Tipo di computer<select id="fTipo"><option value="?">Non so</option><option value="nb">Portatile</option><option value="pc">Fisso (desktop)</option></select></label>
+  <label>Modello della CPU<input id="fCpu" placeholder="es. Intel Core i5-8250U"></label>
+  <label>RAM installata<select id="fRam">${[4, 8, 12, 16, 24, 32, 64].map(n => `<option value="${n}" ${n === def ? 'selected' : ''}>${n} GB${n === 64 ? ' o più' : ''}</option>`).join('')}</select></label>
+  <label>Tipo di RAM<select id="fRamT"><option value="?">Non so</option><option value="DDR3">DDR3</option><option value="DDR4">DDR4</option><option value="DDR5">DDR5</option></select></label>
+  <label>Disco principale<select id="fDisk"><option value="?">Non so</option><option value="hdd">HDD (disco meccanico)</option><option value="sata">SSD SATA</option><option value="nvme">SSD NVMe (M.2)</option></select></label>
+  </div>`;
+  ['fTipo', 'fCpu', 'fRam', 'fRamT', 'fDisk'].forEach(id => $(id).addEventListener('change', advice));
+}
+function renderMeasured(){
+  const cpuS = lg(S.cpu, 2, 200), memS = lg(S.mem, 20, 1000), gfxS = Math.round(clamp(S.gfx / 60, 0, 1) * 100);
+  $('repMeasured').innerHTML = [
+    rc("CPU: calcolo", S.cpu.toFixed(1) + " Mops/s", `${cpuS}/100 · ${vd(cpuS)}`),
+    rc("Memoria: ordinamento", Math.round(S.mem) + " sort/s", `${memS}/100 · ${vd(memS)}`),
+    rc("Grafica 2D", S.gfx.toFixed(0) + " FPS", `${gfxS}/100 · ${vd(gfxS)}`),
+    rc("Rete (stima)", S.net != null ? S.net.toFixed(1) + " Mbps" : "non misurabile", S.net != null ? "download di un file di prova" : ""),
+    rc("Stabilità CPU", S.stab + "%", S.stab >= 90 ? "stabile nel tempo" : S.stab >= 75 ? "lieve calo nel test" : "calo marcato: possibile throttling"),
+  ].join('') + `<div class="rp-sub" style="grid-column:1/-1">Valori ottenuti dal browser: sono stime relative, utili per confrontare dispositivi e individuare i punti deboli. Il punteggio complessivo in alto usa una scala semplificata; qui i riferimenti sono più realistici.</div>`;
+}
+function advice(){
+  if (S.gfx == null || S.cpu == null || S.mem == null) return;
+  const f = { tipo: $('fTipo').value, cpu: $('fCpu').value.trim(), ram: +$('fRam').value, ramT: $('fRamT').value, disk: $('fDisk').value };
+  const gi = gpuInfo(G), cpuS = lg(S.cpu, 2, 200), memS = lg(S.mem, 20, 1000), gfxS = Math.round(clamp(S.gfx / 60, 0, 1) * 100);
+  const nb = f.tipo === 'nb', pc = f.tipo === 'pc', cpuTxt = f.cpu ? ` (${esc(f.cpu)})` : '', R = [];
+
+  if (gi.k === 'sw') R.push({ p: 0, free: true, t: "Prima soluzione, gratuita: attiva l’accelerazione hardware",
+    d: "Il browser usa il rendering software (“Microsoft Basic Render Driver” o simile): la scheda grafica non viene sfruttata. Installa i driver grafici dal sito del produttore o da Windows Update, poi nelle impostazioni del browser attiva “Usa l’accelerazione hardware quando disponibile” e ripeti il test." });
+  if (S.stab < 75) R.push({ p: 1, free: true, t: "Il computer rallenta sotto carico (throttling)",
+    d: `Nel test la CPU perde prestazioni (stabilità ${S.stab}%): di solito è colpa di polvere o pasta termica secca. Pulisci ventole e prese d’aria, sostituisci la pasta termica e usa il profilo energetico “Prestazioni”.` });
+  if (f.disk === 'hdd') R.push({ p: 1, t: "Sostituisci il disco meccanico (HDD) con un SSD",
+    d: "Il disco HDD è il collo di bottiglia più comune: avvio di Windows, apertura dei programmi e dei file diventano molto più rapidi con un SSD. È l’upgrade con il miglior rapporto costo/beneficio.", prods: pc ? [CAT.nvme, CAT.sata] : [CAT.sata, CAT.nvme] });
+  else if (f.disk === '?') R.push({ p: 3, t: "Verifica il tipo di disco",
+    d: "Il browser non può sapere se hai un HDD o un SSD. In Windows apri Gestione attività → Prestazioni → Disco: se compare “HDD”, passare a un SSD è l’upgrade che si nota di più.", prods: [CAT.sata] });
+  if (f.ram <= 8) R.push({ p: f.ram <= 4 ? 1 : 2, t: `Porta la RAM da ${f.ram} GB a 16 GB`,
+    d: `Con ${f.ram} GB, browser, Office e più programmi aperti riempiono presto la memoria. Nel test la memoria risulta ${vd(memS)}. 16 GB sono oggi la dotazione consigliata.`, prods: [ramProd(f)] });
+  if ((gi.k === 'sw' || gi.k === 'int') && gfxS < 60) {
+    if (pc) R.push({ p: 2, t: "Aggiungi una scheda video dedicata",
+      d: `La grafica attuale (${esc(gi.name)}) è ${gi.k === 'sw' ? 'in rendering software' : 'integrata'}: nel test ottiene ${S.gfx.toFixed(0)} FPS. Una scheda dedicata migliora giochi, video e programmi grafici.`, prods: [CAT.gpu] });
+    else R.push({ p: 3, t: "La grafica non si migliora con un componente",
+      d: (nb ? "Nei portatili la GPU è saldata sulla scheda madre e non si sostituisce. " : "Se il computer è un portatile la GPU non è sostituibile; se è un desktop si può aggiungere una scheda video dedicata. ") + "Se servono più prestazioni grafiche, la soluzione è un computer con GPU dedicata." });
+  }
+  if (cpuS < 35) {
+    if (pc) R.push({ p: 2, t: "Valuta una CPU più recente",
+      d: `Il test CPU${cpuTxt} risulta ${vd(cpuS)} (${S.cpu.toFixed(1)} Mops/s). Una CPU nuova deve essere compatibile con il socket della scheda madre: controlla il modello esatto prima di acquistare.`, prods: [CAT.cpu] });
+    else R.push({ p: 3, t: "La CPU non è sostituibile",
+      d: `Il test CPU${cpuTxt} risulta ${vd(cpuS)}. Nei portatili il processore è saldato: dopo aver ottimizzato RAM e disco, se non basta conviene valutare un computer nuovo o ricondizionato.` });
+  }
+  if (S.net != null && S.net < 10) R.push({ p: 3, free: true, t: "Connessione lenta",
+    d: `Il download di prova è fermo a circa ${S.net.toFixed(1)} Mbps: prova con cavo Ethernet o Wi-Fi a 5 GHz, avvicinandoti al router.` });
+  if (!R.length) R.push({ p: 3, free: true, t: "Nessun upgrade urgente", d: "Dai dati inseriti il computer è equilibrato: CPU, memoria e grafica non mostrano colli di bottiglia evidenti." });
+
+  R.sort((a, b) => a.p - b.p);
+  const lab = r => r.free ? "Consiglio gratuito" : ["Priorità alta", "Priorità alta", "Consigliato", "Da valutare"][r.p];
+  const cls = r => r.free ? "free" : "p" + r.p;
+  $('repAdvice').innerHTML = R.map(r => `<div class="rp-adv"><span class="rp-badge ${cls(r)}">${lab(r)}</span><h3>${r.t}</h3><p>${r.d}</p>${(r.prods || []).map(prodCard).join('')}</div>`).join('')
+    + `<div class="rp-foot">I prezzi sono indicativi, rilevati il 21/10/2026 su negozi italiani (Amazon.it, Trovaprezzi) e cambiano spesso: usa i link per il prezzo aggiornato. Le immagini sono illustrazioni dei componenti, non foto dei prodotti. Verifica sempre la compatibilità con il tuo modello prima di acquistare.</div>`;
+}
+
+let busy = false;
+async function onDone(){
+  if (busy) return; busy = true;
+  $('report').style.display = 'block';
+  renderDetected(); buildForm();
+  $('repMeasured').innerHTML = ''; $('repAdvice').innerHTML = '';
+  $('repStatus').textContent = "Analisi di grafica e rete in corso…";
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 60)));
+  try { S.gfx = await gfxTest(1300); } catch (e) { S.gfx = 0; }
+  S.net = await netTest();
+  $('repStatus').textContent = "";
+  renderMeasured(); advice();
+  $('report').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  busy = false;
+}
+})();
 </script>
 </body>
 </html>
